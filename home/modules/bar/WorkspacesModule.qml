@@ -8,7 +8,7 @@ Item {
 	implicitWidth: workspaceRow.implicitWidth
 	implicitHeight: 26
 
-	property int numWorkspaces: 8
+	property int numWorkspaces: Math.max(8, Hyprland.workspaceIds.filter((id) => (id > 0)).length)
 	property var workspaceOccupied: []
 	property var occupiedRanges: []
 	
@@ -93,14 +93,30 @@ Item {
 				property bool occupied: Hyprland.isWorkspaceOccupied(wsIndex)
 				property bool focused: wsIndex === Hyprland.focusedWorkspaceId
 
-				Rectangle {
+				ClippingRectangle {
 					id: dot
 					anchors.centerIn: parent
 					implicitHeight: dotSize
 					implicitWidth: dotSize
 					radius: dotSize / 2
 
-					color: focused ? "red" : "pink"
+					color: focused ? "#f987c5" : "LightGray"
+
+					// IconImage {
+					// 	id: appIcon
+					//
+					// 	anchors.fill: parent
+					// 	source: {
+					// 		const window = Hyprland.focusedWindowForWorkspace(wsIndex);
+					//                        return window ? Quickshell.iconPath(FileUtils.resolveIcon(window.class)) : "";
+					// 		// if (!win) return "";
+					// 		// const entry = DesktopEntries.heuristicLookup(win.class);
+					// 		// if (entry && entry.icon)
+					// 		// 	return AppRegistry.iconForDesktopIcon(entry.icon);
+					// 		// return AppRegistry.iconForClass(win.class);
+					// 	}
+					// 	layer.enabled: true
+					// }
 				}
 				
 				MouseArea {

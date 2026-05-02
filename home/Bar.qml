@@ -34,15 +34,14 @@ Scope {
 				Row {
 					id: hLeftRow
 
-					anchors.horizontalCenter: parent.horizontalCenter
+					anchors.left: parent.left
 					anchors.leftMargin: 3
 
 					Rectangle {
 						id: workspacesShape
 						width: workspaces.implicitWidth + 18
 						height: 26
-						bottomLeftRadius: 6.5
-						bottomRightRadius: 6.5
+						radius: 13
 						color: "#80000000"
 
 						WorkspacesModule { id: workspaces; anchors.centerIn: parent}
