@@ -35,8 +35,8 @@ Scope {
 				Row {
 					id: hLeftRow
 
-					anchors.right: parent.right
-					anchors.rightMargin: 3
+					anchors.horizontalCenter: parent.horizontalCenter
+					anchors.leftMargin: 3
 
 					BottomRadiusRect {
 						id: workspacesShape
@@ -46,6 +46,7 @@ Scope {
 						WorkspacesModule { id: workspaces }
 					}
 				}
+
 				Row {
 					id: hRightRow
 
