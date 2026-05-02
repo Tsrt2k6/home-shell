@@ -145,6 +145,7 @@ Singleton {
                     for (let ws of root.workspacesInfo) map[ws.id] = ws
                     root.workspaceById = map
                     root.workspaceIds = root.workspacesInfo.map(ws => ws.id)
+					root.stateChanged()
                 } catch (e) {}
             }
         }

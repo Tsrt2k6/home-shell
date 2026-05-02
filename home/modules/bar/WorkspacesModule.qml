@@ -5,13 +5,14 @@ import qs.services
 
 Item {
 	id: root
-	implicitWidth: 200
+	implicitWidth: workspaceRow.implicitWidth
 	implicitHeight: 26
 
 	property int numWorkspaces: 8
 	property var workspaceOccupied: []
 	property var occupiedRanges: []
-
+	
+	// Copied function that sets a list of booleans representing occupied workspaces, and groups occupied workspaces together
     function updateWorkspaceOccupied() {
         const offset = 1;
         workspaceOccupied = Array.from({
@@ -43,17 +44,23 @@ Item {
         occupiedRanges = ranges;
     }
 
-	Component.onCompleted: updateWorkspaceOccupied()
+	// Updates workspace indicator when Hyprland singleton gives StateChanged signal
+	Connections {
+		target: Hyprland
+		function onStateChanged() {
+			updateWorkspaceOccupied();
+		}
+	}
+
+	property var dotSize: 12
 	
-
-
+	// Occupied workspace highlight underneath the workspace icons, uses the occupiedRanges for the shape widths
 	Item {
 		id: occupiedStretchLayer
 
-		anchors.verticalCenter: parent.verticalCenter
 		anchors.centerIn: parent
-		width: parent.implicitWidth
-		implicitHeight: 20
+		width: parent.width
+		implicitHeight: parent.height - 6
 
 		Repeater {
 			model: occupiedRanges
@@ -61,40 +68,53 @@ Item {
 			Rectangle {
 				height: parent.height
 				radius: parent.height / 2
-				color: "grey"
-				opacity: 0.8
-				x: modelData.start * (12 + workspaceRow.spacing) - (parent.height - 12) / 2
-				width: (modelData.end - modelData.start + 1) * 12 + (modelData.end - modelData.start) * workspaceRow.spacing + (parent.height - 12)
+				color: "white"
+				opacity: 0.4
+				x: modelData.start * (dotSize + workspaceRow.spacing) - (parent.height - dotSize) / 2
+				width: (modelData.end - modelData.start + 1) * dotSize + (modelData.end - modelData.start) * workspaceRow.spacing + (parent.height - dotSize)
 			}
 		}
 	}
 
+	// Main workspace icon row
 	Row {
 		id: workspaceRow
 
-		anchors.centerIn: bg
+		anchors.centerIn: parent
 		spacing: 10
 
 		Repeater {
 			model: numWorkspaces
-			Rectangle {
-				height: 12
-				width: 12
-				radius: 12/2
-				color: "pink"
-			}
+			Item {
+				implicitWidth: dot.implicitWidth
+				implicitHeight: dot.implicitHeight
 
-			// delegate: Item{
-			// 	property int wsIndex: Hyprland.focusedWorkspaceId - 1
-			// 	property bool occupied: Hyprland.isWorkspaceOccupied(wsIndex)
-			// 	property bool focused: wsIndex === Hyprland.focusedWorkspaceI
-			//
-			// 	Text {
-			// 		anchors.centerIn: parent
-			// 		text: "hello"
-			// 	}
-			// }
-			//
+				property int wsIndex: index + 1
+				property bool occupied: Hyprland.isWorkspaceOccupied(wsIndex)
+				property bool focused: wsIndex === Hyprland.focusedWorkspaceId
+
+				Rectangle {
+					id: dot
+					anchors.centerIn: parent
+					implicitHeight: dotSize
+					implicitWidth: dotSize
+					radius: dotSize / 2
+
+					color: focused ? "red" : "pink"
+				}
+				
+				MouseArea {
+					anchors.centerIn: parent
+					implicitHeight: dot.implicitHeight + 6
+					implicitWidth: dot.implicitWidth + 6
+					onClicked: Hyprland.changeWorkspace(wsIndex)
+				}
+
+				// Text {
+				// 	anchors.centerIn: parent
+				// 	text: wsIndex
+				// }
+			}
 		}
 	}
 

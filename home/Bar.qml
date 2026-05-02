@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Wayland
 import qs.modules.bar
-import qs.modules.widgets
 
 Scope {
 	id: root
@@ -18,7 +17,7 @@ Scope {
 			screen: modelData
 
 			exclusiveZone: 26
-			implicitHeight: 26
+			height: 26
 
 			color: 'transparent'
 
@@ -38,12 +37,15 @@ Scope {
 					anchors.horizontalCenter: parent.horizontalCenter
 					anchors.leftMargin: 3
 
-					BottomRadiusRect {
+					Rectangle {
 						id: workspacesShape
 						width: workspaces.implicitWidth + 18
 						height: 26
+						bottomLeftRadius: 6.5
+						bottomRightRadius: 6.5
+						color: "#80000000"
 
-						WorkspacesModule { id: workspaces }
+						WorkspacesModule { id: workspaces; anchors.centerIn: parent}
 					}
 				}
 
@@ -55,18 +57,24 @@ Scope {
 					anchors.rightMargin: 3
 					spacing: 3
 
-					BottomRadiusRect {
+					Rectangle {
 						id: trayShape
 						width: tray.implicitWidth + 18
 						height: 26
+						bottomLeftRadius: 6.5
+						bottomRightRadius: 6.5
+						color: "#80000000"
 
 						SystemTrayModule { id: tray; anchors.centerIn: parent; parentWindow: bar }
 					}
 
-					BottomRadiusRect {
+					Rectangle {
 						id: radioShape
 						width: radioRow.implicitWidth + 18
 						height: 26
+						bottomLeftRadius: 6.5
+						bottomRightRadius: 6.5
+						color: "#80000000"
 
 						Row {
 							id: radioRow
@@ -78,11 +86,13 @@ Scope {
 						}
 					}
 
-					BottomRadiusRect {
+					Rectangle {
 						id: indicatorShape
-						// width: volume.implicitWidth + brightness.implicitWidth + battery.implicitWidth
 						width: indicatorRow.implicitWidth + 18
 						height: 26
+						bottomLeftRadius: 6.5
+						bottomRightRadius: 6.5
+						color: "#80000000"
 
 						Row {
 							id: indicatorRow
@@ -97,17 +107,16 @@ Scope {
 						}
 					}
 
-					BottomRadiusRect {
+					Rectangle {
 						id: clockShape
 						width: clock.implicitWidth + 18
 						height: 26
+						bottomLeftRadius: 6.5
+						bottomRightRadius: 6.5
+						color: "#80000000"
 
 						ClockModule { id: clock; anchors.centerIn: parent }
 					}
-
-					// StatusIconsModule { }
-
-					// BatteryIndicatorModule { }
 				}
 			}
 		}
