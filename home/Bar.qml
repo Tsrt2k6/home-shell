@@ -49,15 +49,30 @@ Scope {
                 Row {
                     id: hLeftRow
                     anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.leftMargin: 3
+					anchors.verticalCenter: parent.verticalCenter
+					height: 22
+					spacing: 8
 
+					// Vanity Logo
+					Rectangle {
+						id: logo
+						height: parent.height
+						width: parent.height
+						topRightRadius: height / 2
+						bottomRightRadius: height / 2
+						color: Theme.colors["Colors:Complementary"].ForegroundNormal
+						Text {
+							anchors.centerIn: parent
+							text: "󰣇"; font.pointSize: 12
+							color: Theme.colors["Colors:Window"].BackgroundAlternate
+						}
+					}
                     // Workspaces pill
                     Rectangle {
                         id: workspacesShape
-                        width: workspaces.implicitWidth + 14
-                        height: 26
-                        radius: 13
+                        width: workspaces.implicitWidth + 10
+                        height: parent.height
+                        radius: height / 2
                         color: "#80000000"
 
                         WorkspacesModule {

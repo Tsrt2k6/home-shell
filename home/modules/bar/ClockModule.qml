@@ -15,6 +15,7 @@ Item {
 	// 	width: textItem.implicitWidth + 18
 	// 	height: 26
 	// }
+	property bool timeDate: true
 
 	Text {
 		id: textItem
@@ -25,7 +26,11 @@ Item {
 		font.pointSize: 12
 		font.weight: 600
 
-		text: Time.format("hh : mm  AP")
+		text: timeDate ? Time.format("hh : mm  AP") : Time.format("d MMM yyyy")
+	}
+	MouseArea {
+		anchors.fill: textItem
+		onClicked: timeDate = !timeDate
 	}
 }
 

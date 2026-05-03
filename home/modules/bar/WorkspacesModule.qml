@@ -6,7 +6,7 @@ import qs.services
 Item {
 	id: root
 	implicitWidth: workspaceRow.implicitWidth
-	implicitHeight: 26
+	implicitHeight: 22
 
 	property int numWorkspaces: Math.max(8, Hyprland.workspaceIds.filter((id) => (id > 0)).length)
 	property var workspaceOccupied: []
@@ -52,7 +52,7 @@ Item {
 		}
 	}
 
-	property var dotSize: 10
+	property var dotSize: 12
 	
 	// Occupied workspace highlight underneath the workspace icons, uses the occupiedRanges for the shape widths
 	Item {
@@ -95,8 +95,10 @@ Item {
 				Rectangle {
 					id: dot
 					anchors.centerIn: parent
-					anchors.fill: parent
-					radius: dotSize / 2
+					// anchors.fill: parent
+					implicitHeight: 4
+					implicitWidth: 4
+					radius: implicitHeight / 2
 					color: Theme.colors["Colors:Complementary"].ForegroundNormal
 				}
 				
@@ -104,10 +106,11 @@ Item {
 					id: dotFocused
 					anchors.centerIn: parent
 					visible: focused
-					implicitHeight: 8
-					implicitWidth: 8
-					radius: 4
-					color: Theme.colors["Colors:Window"].BackgroundAlternate
+					implicitHeight: dotSize - 2
+					implicitWidth: dotSize - 2
+					radius: implicitHeight / 2
+					color: Theme.colors["Colors:Complementary"].ForegroundNormal
+					// color: Theme.colors["Colors:Window"].BackgroundAlternate
 				}
 
                 // Find the matching HyprlandWorkspace object
