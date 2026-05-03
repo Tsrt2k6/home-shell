@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
-import qs.modules.widgets
 
 Item { // Ensure you have a component type defined (e.g., Item, QtObject)
     id: root

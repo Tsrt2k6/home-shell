@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import qs.modules.widgets
 import Quickshell.Networking
 
 Item {

@@ -3,7 +3,6 @@ import QtQuick.Controls
 import Quickshell.Services.Pipewire
 import Quickshell
 import Quickshell.Io
-import qs.modules.widgets
 
 // Interactions:
 //   - Scroll up / down  → raise / lower volume by 5 %

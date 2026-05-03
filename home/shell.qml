@@ -1,4 +1,4 @@
-//@ pragma IconTheme Tela-circle-dracula-dark
+//@ pragma IconTheme Papirus-Dark
 //@ pragma UseQApplication
 
 import Quickshell

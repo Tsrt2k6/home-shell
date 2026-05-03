@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import qs.modules.widgets
 import qs.services
 
 Item {

@@ -52,26 +52,24 @@ Item {
 		}
 	}
 
-	property var dotSize: 12
+	property var dotSize: 10
 	
 	// Occupied workspace highlight underneath the workspace icons, uses the occupiedRanges for the shape widths
 	Item {
 		id: occupiedStretchLayer
-
-		anchors.centerIn: parent
-		width: parent.width
-		implicitHeight: parent.height - 6
+		anchors.fill: parent
 
 		Repeater {
 			model: occupiedRanges
 
 			Rectangle {
-				height: parent.height
-				radius: parent.height / 2
-				color: "white"
-				opacity: 0.4
-				x: modelData.start * (dotSize + workspaceRow.spacing) - (parent.height - dotSize) / 2
-				width: (modelData.end - modelData.start + 1) * dotSize + (modelData.end - modelData.start) * workspaceRow.spacing + (parent.height - dotSize)
+				anchors.verticalCenter: parent.verticalCenter
+				height: parent.height - 6
+				radius: height / 2
+				color: Theme.colors["Colors:Complementary"].ForegroundLink
+				opacity: 0.5
+				x: modelData.start * (dotSize + workspaceRow.spacing) - (height - dotSize) / 2
+				width: (modelData.end - modelData.start + 1) * dotSize + (modelData.end - modelData.start) * workspaceRow.spacing + (height - dotSize)
 			}
 		}
 	}
@@ -86,43 +84,99 @@ Item {
 		Repeater {
 			model: numWorkspaces
 			Item {
-				implicitWidth: dot.implicitWidth
-				implicitHeight: dot.implicitHeight
+				id: dotItem
+				implicitWidth: dotSize
+				implicitHeight: dotSize
 
 				property int wsIndex: index + 1
 				property bool occupied: Hyprland.isWorkspaceOccupied(wsIndex)
 				property bool focused: wsIndex === Hyprland.focusedWorkspaceId
 
-				ClippingRectangle {
+				Rectangle {
 					id: dot
 					anchors.centerIn: parent
-					implicitHeight: dotSize
-					implicitWidth: dotSize
+					anchors.fill: parent
 					radius: dotSize / 2
-
-					color: focused ? "#f987c5" : "LightGray"
-
-					// IconImage {
-					// 	id: appIcon
-					//
-					// 	anchors.fill: parent
-					// 	source: {
-					// 		const window = Hyprland.focusedWindowForWorkspace(wsIndex);
-					//                        return window ? Quickshell.iconPath(FileUtils.resolveIcon(window.class)) : "";
-					// 		// if (!win) return "";
-					// 		// const entry = DesktopEntries.heuristicLookup(win.class);
-					// 		// if (entry && entry.icon)
-					// 		// 	return AppRegistry.iconForDesktopIcon(entry.icon);
-					// 		// return AppRegistry.iconForClass(win.class);
-					// 	}
-					// 	layer.enabled: true
-					// }
+					color: Theme.colors["Colors:Complementary"].ForegroundNormal
 				}
 				
-				MouseArea {
+				Rectangle {
+					id: dotFocused
 					anchors.centerIn: parent
-					implicitHeight: dot.implicitHeight + 6
-					implicitWidth: dot.implicitWidth + 6
+					visible: focused
+					implicitHeight: 8
+					implicitWidth: 8
+					radius: 4
+					color: Theme.colors["Colors:Window"].BackgroundAlternate
+				}
+
+                // Find the matching HyprlandWorkspace object
+                property var wsObject: {
+                    let ws = Hyprland.workspaces.values.find(w => w.id === wsIndex)
+                    return ws ?? null
+                }
+
+                // Hover popup showing window icons
+                Item {
+                    id: popup
+                    visible: mouseArea.containsMouse && dotItem.wsObject !== null && dotItem.wsObject.toplevels.values.length > 0
+
+                    // Position below the dot, centered
+                    x: (dotItem.implicitWidth - popupBox.implicitWidth) / 2
+                    y: dotItem.implicitHeight + 8
+                    z: 100
+
+                    Rectangle {
+                        id: popupBox
+                        implicitWidth: iconRow.implicitWidth + 12
+                        implicitHeight: iconRow.implicitHeight + 12
+                        radius: 8
+                        color: "#80000000"
+						border.color: Theme.colors["Colors:Complementary"].ForegroundNormal
+						border.width: 0.5
+
+                        Column {
+                            id: iconRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Repeater {
+                                model: dotItem.wsObject ? dotItem.wsObject.toplevels.values : []
+                                Image {
+                                    property var toplevel: modelData
+                                    source: Quickshell.iconPath(toplevel.wayland?.appId ?? "", "application-x-executable")
+                                    width: 28
+                                    height: 28
+                                    smooth: true
+                                }
+                            }
+                        }
+                    }
+
+                    // Animate in/out
+                    opacity: 0
+                    scale: 0.85
+                    transformOrigin: Item.Top
+
+                    states: State {
+                        name: "visible"
+                        when: popup.visible
+                        PropertyChanges { target: popup; opacity: 1; scale: 1 }
+                    }
+
+                    transitions: Transition {
+                        NumberAnimation { properties: "opacity,scale"; duration: 100; easing.type: Easing.OutCubic }
+                    }
+                }
+
+
+
+				MouseArea {
+					id: mouseArea
+					anchors.centerIn: parent
+					hoverEnabled: true
+					implicitHeight: dotSize + workspaceRow.spacing
+					implicitWidth: dotSize + workspaceRow.spacing
 					onClicked: Hyprland.changeWorkspace(wsIndex)
 				}
 

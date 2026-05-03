@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import QtQuick.Layouts
-import qs.modules.widgets
 
 Item {
     id: root

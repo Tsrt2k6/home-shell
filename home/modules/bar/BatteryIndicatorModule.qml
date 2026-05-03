@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import qs.modules.widgets
 import Quickshell.Services.UPower
 
 Item {
