@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import QtQuick.Layouts
 import Quickshell.Services.UPower
+import qs.services
 
 Item {
     id: root
@@ -111,9 +112,34 @@ Item {
         }
     }
 
-    // ── Click to toggle pct / watts ───────────────────────────────────────
+	Rectangle {
+		id: popup
+		visible: batteryArea.containsMouse
+		implicitWidth: timeText.implicitWidth + 18
+		implicitHeight: 26
+		anchors.horizontalCenter: parent.horizontalCenter
+		y: parent.implicitHeight
+		color: "#80000000"
+		radius: 6.5
+		border.width: 0.5
+		border.color: Theme.colors["Colors:Complementary"].ForegroundNormal
+
+		Text {
+			id: timeText
+			anchors.centerIn: parent
+			text: emptyTime !== 0 ? Math.floor(emptyTime / 3600) + "h " + Math.floor((emptyTime % 3600) / 60) + "min" : "loading..."
+			color: "white"
+			font.family: "Quicksand"
+			font.pointSize: 12
+			font.weight: 600
+		}
+
+	}
+	// ── Click to toggle pct / watts ───────────────────────────────────────
     MouseArea {
+		id: batteryArea
         anchors.fill: parent
+		hoverEnabled: true
         onClicked: {
             pctText.visible  = !pctText.visible
             wattText.visible = !wattText.visible

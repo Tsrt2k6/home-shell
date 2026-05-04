@@ -7,8 +7,10 @@ Item {
 	id: root
 	implicitWidth: workspaceRow.implicitWidth
 	implicitHeight: 22
+	property Item activePopupItem: null
 
-	property int numWorkspaces: Math.max(8, Hyprland.workspaceIds.filter((id) => (id > 0)).length)
+	// Filters out special workspace ids (-99, etc) and uses the largest id for numWorkspaces if more than 8
+	property int numWorkspaces: Math.max(8, Math.max(...Hyprland.workspaceIds.filter((id) => (id > 0)))) 
 	property var workspaceOccupied: []
 	property var occupiedRanges: []
 	
@@ -88,6 +90,7 @@ Item {
 				implicitWidth: dotSize
 				implicitHeight: dotSize
 
+
 				property int wsIndex: index + 1
 				property bool occupied: Hyprland.isWorkspaceOccupied(wsIndex)
 				property bool focused: wsIndex === Hyprland.focusedWorkspaceId
@@ -120,14 +123,33 @@ Item {
                 }
 
                 // Hover popup showing window icons
+				readonly property bool popupVisible: popup.visible && popup.opacity > 0
+				onPopupVisibleChanged: {
+                    if (popupVisible) {
+                        // When this popup appears, assign it to the mask
+                        root.activePopupItem = popupBox;
+                    } else if (root.activePopupItem === popupBox) {
+                        // When it hides, clear it (but only if another popup hasn't already taken over)
+                        root.activePopupItem = null;
+                    }
+                }
                 Item {
                     id: popup
-                    visible: mouseArea.containsMouse && dotItem.wsObject !== null && dotItem.wsObject.toplevels.values.length > 0
+                    visible: (mouseArea.containsMouse || popupArea.containsMouse) && dotItem.wsObject !== null && dotItem.wsObject.toplevels.values.length > 0
 
                     // Position below the dot, centered
                     x: (dotItem.implicitWidth - popupBox.implicitWidth) / 2
                     y: dotItem.implicitHeight + 8
                     z: 100
+
+					MouseArea {
+						id: popupArea
+						implicitHeight: popupBox.implicitHeight + 10
+						implicitWidth: popupBox.implicitWidth
+						anchors.centerIn: popupBox
+						anchors.verticalCenterOffset: -5
+						hoverEnabled: true
+					}
 
                     Rectangle {
                         id: popupBox

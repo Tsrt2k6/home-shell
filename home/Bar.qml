@@ -31,11 +31,17 @@ Scope {
 
             // Only the visible 26px bar receives mouse input;
             // clicks in the transparent popup area pass through to windows below
-            mask: Region {
-                item: barContent
-            }
+            // mask: Region {
+            //     item: barContent
+            // }
+			mask: Region {
+				// 1. The static bar (always clickable)
+				Region { item: barContent }
 
-            // ── Bar content (top 26px) ─────────────────────────────────────
+				// 2. The currently active popup (will be null if none are hovered)
+				Region { item: workspaces.activePopupItem }
+			}
+			// ── Bar content (top 26px) ─────────────────────────────────────
             Item {
                 id: barContent
                 anchors {
