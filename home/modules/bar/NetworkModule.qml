@@ -12,12 +12,23 @@ Item {
     readonly property var wifiDevice: {
         for (let i = 0; i < Networking.devices.values.length; i++) {
             const dev = Networking.devices.values[i]
-            if (dev instanceof WifiDevice) return dev
+            if (dev instanceof WifiDevice && dev.connected) return dev
+        }
+        return null
+    }
+
+
+	readonly property var wiredDevice: {
+        for (let i = 0; i < Networking.devices.values.length; i++) {
+            const dev = Networking.devices.values[i]
+            // WiredDevice covers Ethernet; exclude WifiDevice to be safe
+            if (dev instanceof WiredDevice && dev.connected) return dev
         }
         return null
     }
 
     readonly property var activeNetwork: {
+		if (root.wiredDevice) return null   // ethernet has no "network" object
         if (!root.wifiDevice) return null
         for (let i = 0; i < root.wifiDevice.networks.values.length; i++) {
             const net = root.wifiDevice.networks.values[i]
@@ -32,6 +43,7 @@ Item {
 
     // ── Signal icon ───────────────────────────────────────────────────────
     readonly property string icon: {
+		if (root.wiredDevice) return "󰈀 "
         if (!root.activeNetwork) return "󰤭 "   // no wifi / disconnected
         if (root.strength >= 0.75) return "󰤨 " // excellent
         if (root.strength >= 0.50) return "󰤥 " // good
@@ -60,14 +72,16 @@ Item {
             font.family: "Quicksand"
             font.pointSize: 12
             font.weight: 600
-            color: root.activeNetwork ? "white" : "#888888"
+			color: (root.activeNetwork || root.wiredDevice) ? "white" : "#888888"
             Behavior on color { ColorAnimation { duration: 80 } }
         }
 
         Text {
             id: ssidText
             anchors.verticalCenter: parent.verticalCenter
-            text: root.ssid.length > 0 ? root.ssid : "disconnected"
+            text: root.wiredDevice
+                  ? (root.wiredDevice.name ?? "Ethernet")
+                  : (root.ssid.length > 0 ? root.ssid : "disconnected")
             font.family: "Quicksand"
             font.pointSize: 12
             font.weight: 600
