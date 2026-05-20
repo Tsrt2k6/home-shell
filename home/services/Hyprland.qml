@@ -49,17 +49,24 @@ Singleton {
     }
 
     function focusedWindowForWorkspace(workspaceId) {
-        const wsWindows = root.windowList.filter(w => w.workspace.id === workspaceId)
-        if (wsWindows.length === 0) return null
-        return wsWindows.reduce((best, win) => {
-            const bestFocus = best?.focusHistoryID ?? Infinity
+        let best = null
+        let bestFocus = Infinity
+
+        for (const win of root.windowList) {
+            if (win.workspace.id !== workspaceId) continue
+
             const winFocus = win?.focusHistoryID ?? Infinity
-            return winFocus < bestFocus ? win : best
-        }, null)
+            if (winFocus < bestFocus) {
+                best = win
+                bestFocus = winFocus
+            }
+        }
+
+        return best
     }
 
     function isWorkspaceOccupied(id: int): bool {
-        return Hyprland.workspaces.values.find(w => w?.id === id)?.lastIpcObject.windows > 0 || false
+        return (root.workspaceById[id]?.windows ?? 0) > 0
     }
 
     function updateAll() {
@@ -71,12 +78,20 @@ Singleton {
     }
 
     function biggestWindowForWorkspace(workspaceId) {
-        const windowsInThisWorkspace = root.windowList.filter(w => w.workspace.id === workspaceId)
-        return windowsInThisWorkspace.reduce((maxWin, win) => {
-            const maxArea = (maxWin?.size?.[0] ?? 0) * (maxWin?.size?.[1] ?? 0)
-            const winArea = (win?.size?.[0] ?? 0) * (win?.size?.[1] ?? 0)
-            return winArea > maxArea ? win : maxWin
-        }, null)
+        let biggest = null
+        let biggestArea = 0
+
+        for (const win of root.windowList) {
+            if (win.workspace.id !== workspaceId) continue
+
+            const area = (win?.size?.[0] ?? 0) * (win?.size?.[1] ?? 0)
+            if (area > biggestArea) {
+                biggest = win
+                biggestArea = area
+            }
+        }
+
+        return biggest
     }
 
     function refreshKeyboardLayout() {
@@ -111,10 +126,14 @@ Singleton {
             onStreamFinished: {
                 try {
                     root.windowList = JSON.parse(this.text)
-                    let tempWinByAddress = {}
-                    for (let win of root.windowList) tempWinByAddress[win.address] = win
+                    const tempWinByAddress = {}
+                    const tempAddresses = []
+                    for (const win of root.windowList) {
+                        tempWinByAddress[win.address] = win
+                        tempAddresses.push(win.address)
+                    }
                     root.windowByAddress = tempWinByAddress
-                    root.addresses = root.windowList.map(w => w.address)
+                    root.addresses = tempAddresses
                 } catch (e) { console.error(e) }
             }
         }
@@ -141,10 +160,14 @@ Singleton {
             onStreamFinished: {
                 try {
                     root.workspacesInfo = JSON.parse(this.text)
-                    let map = {}
-                    for (let ws of root.workspacesInfo) map[ws.id] = ws
+                    const map = {}
+                    const ids = []
+                    for (const ws of root.workspacesInfo) {
+                        map[ws.id] = ws
+                        ids.push(ws.id)
+                    }
                     root.workspaceById = map
-                    root.workspaceIds = root.workspacesInfo.map(ws => ws.id)
+                    root.workspaceIds = ids
 					root.stateChanged()
                 } catch (e) {}
             }

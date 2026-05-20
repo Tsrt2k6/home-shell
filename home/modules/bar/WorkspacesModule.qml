@@ -10,49 +10,47 @@ Item {
 	property Item activePopupItem: null
 
 	// Filters out special workspace ids (-99, etc) and uses the largest id for numWorkspaces if more than 8
-	property int numWorkspaces: Math.max(8, Math.max(...Hyprland.workspaceIds.filter((id) => (id > 0)))) 
-	property var workspaceOccupied: []
+	property int numWorkspaces: {
+		let maxId = 8
+		for (let i = 0; i < Hyprland.workspaceIds.length; i++) {
+			const id = Hyprland.workspaceIds[i]
+			if (id > maxId) maxId = id
+		}
+		return maxId
+	}
 	property var occupiedRanges: []
 	
-	// Copied function that sets a list of booleans representing occupied workspaces, and groups occupied workspaces together
-    function updateWorkspaceOccupied() {
-        const offset = 1;
-        workspaceOccupied = Array.from({
-            "length": numWorkspaces
-        }, (_, i) => {
-            return Hyprland.isWorkspaceOccupied(i + 1);
-        });
-        const ranges = [];
-        let start = -1;
-        for (let i = 0; i < workspaceOccupied.length; i++) {
-            if (workspaceOccupied[i]) {
-                if (start === -1)
-                    start = i;
+	// Build the occupied range cache once per Hyprland state change.
+	function updateOccupiedRanges() {
+		const ranges = []
+		let start = -1
 
-            } else if (start !== -1) {
-                ranges.push({
-                    "start": start,
-                    "end": i - 1
-                });
-                start = -1;
-            }
-        }
-        if (start !== -1)
-            ranges.push({
-            "start": start,
-            "end": workspaceOccupied.length - 1
-        });
+		for (let i = 0; i < numWorkspaces; i++) {
+			const isOccupied = Hyprland.isWorkspaceOccupied(i + 1)
 
-        occupiedRanges = ranges;
-    }
+			if (isOccupied) {
+				if (start === -1) start = i
+			} else if (start !== -1) {
+				ranges.push({ start, end: i - 1 })
+				start = -1
+			}
+		}
+
+		if (start !== -1)
+			ranges.push({ start, end: numWorkspaces - 1 })
+
+		occupiedRanges = ranges
+	}
 
 	// Updates workspace indicator when Hyprland singleton gives StateChanged signal
 	Connections {
 		target: Hyprland
 		function onStateChanged() {
-			updateWorkspaceOccupied();
+			updateOccupiedRanges();
 		}
 	}
+
+	Component.onCompleted: updateOccupiedRanges()
 
 	property var dotSize: 12
 	
@@ -65,13 +63,15 @@ Item {
 			model: occupiedRanges
 
 			Rectangle {
+				property int rangeStart: modelData.start
+				property int rangeEnd: modelData.end
 				anchors.verticalCenter: parent.verticalCenter
 				height: parent.height - 6
 				radius: height / 2
 				color: Theme.colors["Colors:Complementary"].ForegroundLink
 				opacity: 0.5
-				x: modelData.start * (dotSize + workspaceRow.spacing) - (height - dotSize) / 2
-				width: (modelData.end - modelData.start + 1) * dotSize + (modelData.end - modelData.start) * workspaceRow.spacing + (height - dotSize)
+				x: rangeStart * (dotSize + workspaceRow.spacing) - (height - dotSize) / 2
+				width: (rangeEnd - rangeStart + 1) * dotSize + (rangeEnd - rangeStart) * workspaceRow.spacing + (height - dotSize)
 			}
 		}
 	}
@@ -90,9 +90,7 @@ Item {
 				implicitWidth: dotSize
 				implicitHeight: dotSize
 
-
 				property int wsIndex: index + 1
-				property bool occupied: Hyprland.isWorkspaceOccupied(wsIndex)
 				property bool focused: wsIndex === Hyprland.focusedWorkspaceId
 
 				Rectangle {
@@ -104,7 +102,7 @@ Item {
 					radius: implicitHeight / 2
 					color: Theme.colors["Colors:Complementary"].ForegroundNormal
 				}
-				
+
 				Rectangle {
 					id: dotFocused
 					anchors.centerIn: parent
@@ -116,11 +114,9 @@ Item {
 					// color: Theme.colors["Colors:Window"].BackgroundAlternate
 				}
 
-                // Find the matching HyprlandWorkspace object
-                property var wsObject: {
-                    let ws = Hyprland.workspaces.values.find(w => w.id === wsIndex)
-                    return ws ?? null
-                }
+				// Popup contents need the live Hyprland workspace object.
+				readonly property var wsObject: Hyprland.workspaces.values.find(w => w?.id === wsIndex) ?? null
+				readonly property bool hasWindows: (wsObject?.lastIpcObject?.windows ?? 0) > 0
 
                 // Hover popup showing window icons
 				readonly property bool popupVisible: popup.visible && popup.opacity > 0
@@ -135,7 +131,7 @@ Item {
                 }
                 Item {
                     id: popup
-                    visible: (mouseArea.containsMouse || popupArea.containsMouse) && dotItem.wsObject !== null && dotItem.wsObject.toplevels.values.length > 0
+                    visible: (mouseArea.containsMouse || popupArea.containsMouse) && dotItem.hasWindows
 
                     // Position below the dot, centered
                     x: (dotItem.implicitWidth - popupBox.implicitWidth) / 2
