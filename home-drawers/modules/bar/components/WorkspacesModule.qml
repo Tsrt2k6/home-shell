@@ -1,0 +1,212 @@
+import QtQuick
+import Quickshell
+import Quickshell.Widgets
+import qs.services
+
+Item {
+	id: root
+	implicitWidth: workspaceRow.implicitWidth
+	implicitHeight: 22
+	property Item activePopupItem: null
+
+	// Filters out special workspace ids (-99, etc) and uses the largest id for numWorkspaces if more than 8
+	property int numWorkspaces: {
+		let maxId = 8
+		for (let i = 0; i < Hyprland.workspaceIds.length; i++) {
+			const id = Hyprland.workspaceIds[i]
+			if (id > maxId) maxId = id
+		}
+		return maxId
+	}
+	property var occupiedRanges: []
+	
+	// Build the occupied range cache once per Hyprland state change.
+	function updateOccupiedRanges() {
+		const ranges = []
+		let start = -1
+
+		for (let i = 0; i < numWorkspaces; i++) {
+			const isOccupied = Hyprland.isWorkspaceOccupied(i + 1)
+
+			if (isOccupied) {
+				if (start === -1) start = i
+			} else if (start !== -1) {
+				ranges.push({ start, end: i - 1 })
+				start = -1
+			}
+		}
+
+		if (start !== -1)
+			ranges.push({ start, end: numWorkspaces - 1 })
+
+		occupiedRanges = ranges
+	}
+
+	// Updates workspace indicator when Hyprland singleton gives StateChanged signal
+	Connections {
+		target: Hyprland
+		function onStateChanged() {
+			updateOccupiedRanges();
+		}
+	}
+
+	Component.onCompleted: updateOccupiedRanges()
+
+	property var dotSize: 12
+	
+	// Occupied workspace highlight underneath the workspace icons, uses the occupiedRanges for the shape widths
+	Item {
+		id: occupiedStretchLayer
+		anchors.fill: parent
+
+		Repeater {
+			model: occupiedRanges
+
+			Rectangle {
+				property int rangeStart: modelData.start
+				property int rangeEnd: modelData.end
+				anchors.verticalCenter: parent.verticalCenter
+				height: parent.height - 6
+				radius: height / 2
+				color: Theme.colors["Colors:Complementary"].ForegroundLink
+				opacity: 0.5
+				x: rangeStart * (dotSize + workspaceRow.spacing) - (height - dotSize) / 2
+				width: (rangeEnd - rangeStart + 1) * dotSize + (rangeEnd - rangeStart) * workspaceRow.spacing + (height - dotSize)
+			}
+		}
+	}
+
+	// Main workspace icon row
+	Row {
+		id: workspaceRow
+
+		anchors.centerIn: parent
+		spacing: 10
+
+		Repeater {
+			model: numWorkspaces
+			Item {
+				id: dotItem
+				implicitWidth: dotSize
+				implicitHeight: dotSize
+
+				property int wsIndex: index + 1
+				property bool focused: wsIndex === Hyprland.focusedWorkspaceId
+
+				Rectangle {
+					id: dot
+					anchors.centerIn: parent
+					// anchors.fill: parent
+					implicitHeight: 4
+					implicitWidth: 4
+					radius: implicitHeight / 2
+					color: Theme.colors["Colors:Complementary"].ForegroundNormal
+				}
+
+				Rectangle {
+					id: dotFocused
+					anchors.centerIn: parent
+					visible: focused
+					implicitHeight: dotSize - 2
+					implicitWidth: dotSize - 2
+					radius: implicitHeight / 2
+					color: Theme.colors["Colors:Complementary"].ForegroundNormal
+					// color: Theme.colors["Colors:Window"].BackgroundAlternate
+				}
+
+				// Popup contents need the live Hyprland workspace object.
+				readonly property var wsObject: Hyprland.workspaces.values.find(w => w?.id === wsIndex) ?? null
+				readonly property bool hasWindows: (wsObject?.lastIpcObject?.windows ?? 0) > 0
+
+                // Hover popup showing window icons
+				readonly property bool popupVisible: popup.visible && popup.opacity > 0
+				onPopupVisibleChanged: {
+                    if (popupVisible) {
+                        // When this popup appears, assign it to the mask
+                        root.activePopupItem = popupBox;
+                    } else if (root.activePopupItem === popupBox) {
+                        // When it hides, clear it (but only if another popup hasn't already taken over)
+                        root.activePopupItem = null;
+                    }
+                }
+                Item {
+                    id: popup
+                    visible: (mouseArea.containsMouse || popupArea.containsMouse) && dotItem.hasWindows
+
+                    // Position below the dot, centered
+                    x: (dotItem.implicitWidth - popupBox.implicitWidth) / 2
+                    y: dotItem.implicitHeight + 8
+                    z: 100
+
+					MouseArea {
+						id: popupArea
+						implicitHeight: popupBox.implicitHeight + 10
+						implicitWidth: popupBox.implicitWidth
+						anchors.centerIn: popupBox
+						anchors.verticalCenterOffset: -5
+						hoverEnabled: true
+					}
+
+                    Rectangle {
+                        id: popupBox
+                        implicitWidth: iconRow.implicitWidth + 12
+                        implicitHeight: iconRow.implicitHeight + 12
+                        radius: 8
+                        color: "#80000000"
+						border.color: Theme.colors["Colors:Complementary"].ForegroundNormal
+						border.width: 0.5
+
+                        Column {
+                            id: iconRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Repeater {
+                                model: dotItem.wsObject ? dotItem.wsObject.toplevels.values : []
+                                Image {
+                                    property var toplevel: modelData
+                                    source: Quickshell.iconPath(toplevel.wayland?.appId ?? "", "application-x-executable")
+                                    width: 28
+                                    height: 28
+                                    smooth: true
+                                }
+                            }
+                        }
+                    }
+
+                    // Animate in/out
+                    opacity: 0
+                    scale: 0.85
+                    transformOrigin: Item.Top
+
+                    states: State {
+                        name: "visible"
+                        when: popup.visible
+                        PropertyChanges { target: popup; opacity: 1; scale: 1 }
+                    }
+
+                    transitions: Transition {
+                        NumberAnimation { properties: "opacity,scale"; duration: 100; easing.type: Easing.OutCubic }
+                    }
+                }
+
+
+
+				MouseArea {
+					id: mouseArea
+					anchors.centerIn: parent
+					hoverEnabled: true
+					implicitHeight: dotSize + workspaceRow.spacing
+					implicitWidth: dotSize + workspaceRow.spacing
+					onClicked: Hyprland.changeWorkspace(wsIndex)
+				}
+
+				// Text {
+				// 	anchors.centerIn: parent
+				// 	text: wsIndex
+				// }
+			}
+		}
+	}
+
+}
