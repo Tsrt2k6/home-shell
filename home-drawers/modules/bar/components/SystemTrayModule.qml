@@ -8,8 +8,6 @@ Item { // Ensure you have a component type defined (e.g., Item, QtObject)
 	implicitWidth: trayRow.implicitWidth
 	implicitHeight: trayRow.implicitHeight
 
-	property var parentWindow: null
-
 	Row {
 		id: trayRow
 		spacing: 5
@@ -29,11 +27,6 @@ Item { // Ensure you have a component type defined (e.g., Item, QtObject)
 					mipmap: true
 					smooth: true
 				}
-				// Image {
-				// 	anchors.fill: parent
-				// 	source: modelData.icon // The icon provided by the app
-				// 	fillMode: Image.PreserveAspectFit
-				// }
 
 				// Handle interactions
 				acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -43,7 +36,7 @@ Item { // Ensure you have a component type defined (e.g., Item, QtObject)
 					} else if (mouse.button === Qt.RightButton) {
 						// Quickshell provides helpers for context menus
 						var globalPos = trayMouseArea.mapToGlobal(mouse.x, mouse.y)
-						modelData.display(Quickshell.QsWindow, globalPos.x, globalPos.y)
+						modelData.display(QsWindow.window, globalPos.x, globalPos.y)
 					}
 				}
 			}
