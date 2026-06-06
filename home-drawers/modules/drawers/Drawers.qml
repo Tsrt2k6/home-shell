@@ -19,7 +19,7 @@ Variants {
 		PanelWindow {
 			screen: scope.modelData
 			color: 'transparent'
-			anchors.bottom: true
+			anchors.top: true
 			WlrLayershell.namespace: 'home-border-exclusion'
 			exclusiveZone: bar.exclusiveZone
 			mask: Region {}
@@ -34,7 +34,7 @@ Variants {
 			screen: scope.modelData
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
-			mask: Region {} // temp untill barwrapper is done
+			mask: Region { item: bar } 
 
 			anchors.top: true
 			anchors.bottom: true

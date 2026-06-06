@@ -43,7 +43,7 @@ Item { // Ensure you have a component type defined (e.g., Item, QtObject)
 					} else if (mouse.button === Qt.RightButton) {
 						// Quickshell provides helpers for context menus
 						var globalPos = trayMouseArea.mapToGlobal(mouse.x, mouse.y)
-						modelData.display(parentWindow, globalPos.x, globalPos.y)
+						modelData.display(Quickshell.QsWindow, globalPos.x, globalPos.y)
 					}
 				}
 			}
