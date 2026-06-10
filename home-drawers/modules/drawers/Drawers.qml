@@ -41,13 +41,25 @@ Variants {
 			anchors.left: true
 			anchors.right: true
 
-			BarWrapper {
-				id: bar
-
-				anchors.left: parent.left
-				anchors.right: parent.right
-
+			Interactions {
 				screen: scope.modelData
+				popouts: panels.popouts
+				panels: panels
+				bar: bar
+
+				Panels {
+					id: panels
+					screen: scope.modelData
+					bar: bar
+				}
+				BarWrapper {
+					id: bar
+
+					anchors.left: parent.left
+					anchors.right: parent.right
+
+					screen: scope.modelData
+				}
 			}
 		}
 	}

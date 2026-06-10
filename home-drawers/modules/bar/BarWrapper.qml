@@ -7,7 +7,7 @@ import qs.services
 Item {
 	id: root
 	anchors.top: parent.top
-	height: 26
+	implicitHeight: 26
 
 	required property ShellScreen screen
 	readonly property int exclusiveZone: 26
