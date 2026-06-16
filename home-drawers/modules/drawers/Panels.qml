@@ -26,5 +26,7 @@ Item {
 				return off + diff;
 			return Math.max(off, 0);
 		}
+		Component.onCompleted: console.log(x, y)
+
 	}
 }

@@ -2,57 +2,39 @@ import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Wayland
+import qs.modules.bar.popouts as BarPopouts
 import qs.modules.bar.components
 import qs.services
-
-// Scope {
-//     id: root
-//
-//     // Create one bar per screen
-//     Variants {
-// 		model: Theme.ready ? Quickshell.screens : []
-//
-//         PanelWindow {
-//             id: bar
-//             required property var modelData
-//             screen: modelData
-//
-//             // Reserve 26px at the top for the bar, but render 76px tall
-//             // to allow workspace popup to extend below without being clipped
-//             exclusiveZone: 26
-// 			implicitHeight: modelData.height
-//             color: "transparent"
-//
-//             anchors {
-//                 top: true
-//                 left: true
-//                 right: true
-//             }
-//
-//             // Only the visible 26px bar receives mouse input;
-//             // clicks in the transparent popup area pass through to windows below
-//             // mask: Region {
-//             //     item: barContent
-//             // }
-// 			mask: Region {
-// 				// 1. The static bar (always clickable)
-// 				Region { item: barContent }
-//
-// 				// 2. The currently active popup (will be null if none are hovered)
-// 				Region { item: workspaces.activePopupItem }
-// 			}
-// 			// ── Bar content (top 26px) ─────────────────────────────────────
-//             // ── End bar content ───────────────────────────────────────────
-//             // Remaining 50px below barContent is transparent space for
-//             // the WorkspacesModule popup to render into without clipping
-//         }
-//     }
-// }
 
 Item {
 	id: barContent
 
 	required property ShellScreen screen
+	required property BarPopouts.Wrapper popouts
+
+	// function closeTray(): void {
+	// 	for (let i = 0; i < repeater.count; i++) {
+	// 		const loader = repeater.itemAt(i) as WrappedLoader;
+	// 		if (loader?.enabled && loader.id === "tray") {
+	// 			(loader.item as Tray).expanded = false;
+	// 		}
+	// 	}
+	// }
+
+	function checkPopout(x: real): void {
+		const ch = childAt(height / 2, x);
+
+		if (ch?.id !== "tray")
+			closeTray();
+
+		if (!ch) {
+			popouts.hasCurrent = false;
+			return;
+		}
+
+		const id = ch.id;
+		const left = ch.x;
+	}
 
 	component BgShape: Rectangle {
 		property int padding: 9

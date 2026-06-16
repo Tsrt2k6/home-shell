@@ -59,6 +59,7 @@ Variants {
 					anchors.right: parent.right
 
 					screen: scope.modelData
+					popouts: panels.popouts
 				}
 			}
 		}

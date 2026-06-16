@@ -47,7 +47,7 @@ Item {
 		anchors.verticalCenter: parent.verticalCenter
 
 		sourceComponent: Content {
-			popouts: popoutState
+			popoutState: popoutState
 		}
 	}
 
